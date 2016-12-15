@@ -39,6 +39,8 @@ if test "x$enable_debug" = xyes; then
    FFLAGS=-g
 fi
 
+CXXFLAGS="$CXXFLAGS -std=c++11"
+
 # TODO: set optimization flags? Does it matter, or is the default -g -O2 okay?
 
 # add gcc warnings in debug or maintainer mode
