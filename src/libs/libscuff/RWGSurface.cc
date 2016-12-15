@@ -122,6 +122,52 @@ RWGSurface::RWGSurface(FILE *f, const char *pLabel, int *LineNum, char *Keyword)
          };
         MeshFileName=strdupEC(Tokens[1]);
       }
+     else if (!StrCaseCmp(Tokens[0], "GEOFILE") )
+     {
+        // Need to re-generate .msh from .geo file using gmsh;
+        // The characteristic length of mesh is given by bgm.py
+        if (NumTokens!=2)
+        {  ErrMsg=strdupEC("GEOFILE keyword requires one argument");
+          return;
+        };
+        std::string geoName(Tokens[1]), tmpGeoName, tmpMeshName;
+        std::string cmdName;
+        size_t dot=geoName.find_last_of(".");
+        if (dot!=std::string::npos) 
+        {
+          std::string baseName(geoName.substr(0,dot)+"_adapt_");
+          int i(1), maxTry(100);
+          // Find the 1st available file name; 
+          while (i<maxTry) 
+          {
+            if (access((baseName+std::to_string(i)).c_str(), F_OK)==-1) 
+              break;
+          }
+          if (i==maxTry) ErrExit("Please cleanup _adapt_ files");
+          tmpGeoName = baseName + std::to_string(i) + ".geo";
+          tmpMeshName = baseName + std::to_string(i) + ".msh";
+        }
+        Log("Generate msh file %s from %s", tmpMeshName.c_str(), geoName.c_str());
+        cmdName = "cp " + geoName + " " + tmpGeoName;
+        vsystem(cmdName.c_str());
+        if (access("bgm.py", F_OK)!=-1) 
+        {
+          FILE *fp;
+          fp = fopen(tmpGeoName.c_str(),"a");
+          fprintf(fp, "Field[10000]=ExternalProcess;\n");
+          fprintf(fp, "Field[10000].CommandLine=\"./bgm.py\"\n");
+          fprintf(fp, "Mesh.CharacteristicLengthExtendFromBoundary = 0;\n");
+          fprintf(fp, "Background Field=10000;\n");
+          fclose(fp);
+        }
+        cmdName = "gmsh -2 ";
+        cmdName += tmpGeoName + " -o "+tmpMeshName;
+        int status = vsystem(cmdName.c_str());
+        if (status==0) 
+          MeshFileName = const_cast<char *>(tmpMeshName.c_str());
+        else 
+          ErrExit("Error occurs when runnning:\n%s\n", cmdName.c_str());
+     }
      else if ( !StrCaseCmp(Tokens[0],"MESHTAG") )
       { if (NumTokens!=2)
          { ErrMsg=strdupEC("MESHTAG keyword requires one argument");

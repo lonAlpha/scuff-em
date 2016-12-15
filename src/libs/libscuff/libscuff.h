@@ -49,6 +49,10 @@
 #include "GBarAccelerator.h"
 #include "PFTOptions.h"
 
+#include <iostream>
+#include <string>
+#include <unistd.h>
+
 namespace scuff {
 
 /*--------------------------------------------------------------*/
