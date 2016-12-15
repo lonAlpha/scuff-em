@@ -264,6 +264,7 @@ AC_CONFIG_FILES([
  src/applications/scuff-plotEpsMu/Makefile
  src/applications/scuff-rf/Makefile
  src/applications/scuff-scatter/Makefile
+ src/applications/scuff-scatter-adapt/Makefile
  src/applications/scuff-static/Makefile
  src/applications/scuff-tmatrix/Makefile
  src/applications/scuff-transmission/Makefile
