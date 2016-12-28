@@ -18,10 +18,10 @@
  */
 
 /*
- * scuff-scatter.h -- a standalone code within the scuff-em suite
+ * scuff-scatter-adapt.h -- a standalone code within the scuff-em-mod suite
  *                 -- for solving scattering problems
  *
- * homer reid      -- 6/2011--2/2012
+ * yao jin   2016
  */
 #ifndef SCUFFSCATTER_ADAPT_H
 #define SCUFFSCATTER_ADAPT_H
@@ -31,7 +31,15 @@
 #include "libIncField.h"
 #include "libscuff.h"
 
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <errno.h>
+
 using namespace scuff;
+
 
 /***************************************************************/
 /* data structure containing everything needed to execute a    */
@@ -61,5 +69,35 @@ void GetMoments(SSData *SSD, char *MomentFile);
 void ProcessEPFile(SSData *SSData, char *EPFileName);
 void VisualizeFields(SSData *SSData, 
                      char *FVMesh, char *FVMeshTransFile, char *FuncList);
+
+enum RefineType {
+  RTUniform=0, 
+  RTCurrent, 
+  RTCurrentDensity, 
+  RTCharge, 
+  RTChargeDensity
+};
+
+
+#define MESHPORT 4000
+
+/*
+ * MeshSize data 
+ */
+struct MSData
+{
+  RefineType type;
+  bool firstIteration; 
+  double meshSize; /* type==RTUniform; */
+  SSData *ssdata;
+  pthread_t threadId;    /* Later this is used to terminate thread */
+
+  double percentage; 
+};
+
+void StartBGMeshService(MSData *msdata);
+void UpdateBGMeshService(MSData *msdata);
+void EndBGMeshService(MSData *msdata);
+
 
 #endif

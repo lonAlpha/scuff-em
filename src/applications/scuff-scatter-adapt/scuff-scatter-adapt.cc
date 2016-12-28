@@ -1,13 +1,13 @@
 /* Copyright (C) 2005-2011 M. T. Homer Reid
  *
- * This file is part of SCUFF-EM.
+ * This file is part of SCUFF-EM-MOD.
  *
- * SCUFF-EM is free software; you can redistribute it and/or modify
+ * SCUFF-EM-MOD is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * SCUFF-EM is distributed in the hope that it will be useful,
+ * SCUFF-EM-MOD is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -18,14 +18,23 @@
  */
 
 /*
- * scuff-scatter.cc  -- a standalone code within the scuff-EM suite for 
- *                   -- solving problems involving the scattering of 
- *                   -- electromagnetic radiation from an arbitrary 
- *                   -- compact object
+ * scuff-scatter-adapt.cc  -- a standalone code within the scuff-EM-MOD suite for 
+ *                         -- solving problems involving the scattering of 
+ *                         -- electromagnetic radiation from an arbitrary 
+ *                         -- compact object, 
+ *                         -- using adaptive mesh;
  *
- * homer reid        -- 10/2006 -- 1/2012
+ * The program is based on Homer Reid's scuff-scatter; 
+ * The mesh will be finer than that in previous iteration;
+ * Following additional parameters are added 
+ * -frequency (mandatory, in GHz)
+ * -iteration (default =3, num of iteration to get final adaptive mesh)
+ * -meshsize (initial meshsize, default = wavelen/6)
+ * -percentage (default=0.1, this mean meshsize will be 110% finer in  next iteration
+ * -method {0|1|2|3|4}, default = 0
  *
- * documentation at: http://homerreid.com/scuff-em/
+ *
+ * Yao Jin  2016
  *
  */
 #include <stdio.h>
@@ -34,6 +43,8 @@
 #include <fenv.h>
 
 #include "scuff-scatter-adapt.h"
+
+#define FREQ2OMEGA (2.0*M_PI/0.3)
 
 /***************************************************************/
 /***************************************************************/
@@ -62,10 +73,13 @@ int main(int argc, char *argv[])
 //
   char *GeoFile=0;
 //
-  cdouble OmegaVals[MAXFREQ];        int nOmegaVals;
-  char *OmegaFile=0;
   cdouble LambdaVals[MAXFREQ];       int nLambdaVals;
   char *LambdaFile=0;
+  double FrequencyValues[MAXFREQ]; int nFrequency;
+  int NumIter(-1);
+  double MeshSize(-1.0);
+  double percentage(0.1);
+  RefineType method(RTUniform);
 //
   double pwDir[3*MAXPW];             int npwDir;
   cdouble pwPol[3*MAXPW];            int npwPol;
@@ -120,8 +134,11 @@ int main(int argc, char *argv[])
    { 
      {"geometry",       PA_STRING,  1, 1,       (void *)&GeoFile,    0,             "geometry file\n"},
 /**/
-     {"Omega",          PA_CDOUBLE, 1, MAXFREQ, (void *)OmegaVals,   &nOmegaVals,   "(angular) frequency"},
-     {"OmegaFile",      PA_STRING,  1, 1,       (void *)&OmegaFile,  0,             "file listing angular frequencies"},
+     {"frequency",      PA_DOUBLE,  1, MAXFREQ, (void *)FrequencyValues,  &nFrequency,   "frequency (GHz)"},
+     {"iteration",      PA_INT,     1, 1,       (void *)&NumIter,     0,            "Num of iteration to refine mesh"},
+     {"meshsize",       PA_DOUBLE,  1, 1,       (void *)&MeshSize,   0,             "Initial mesh size"}, 
+     {"percentage",     PA_DOUBLE,  1, 1,       (void *)&percentage, 0,             "Refinement percentage between iterations"},
+     {"method",         PA_INT,     1, 1,       (void *)&method,     0,             "Refine method"},
      {"Lambda",         PA_CDOUBLE, 1, MAXFREQ, (void *)LambdaVals,  &nLambdaVals,  "wavelength"},
      {"LambdaFile",     PA_STRING,  1, 1,       (void *)&LambdaFile, 0,             "file listing wavelengths\n"},
 /**/
@@ -187,10 +204,14 @@ int main(int argc, char *argv[])
   /*******************************************************************/
   /* process frequency-related options                               */
   /*******************************************************************/
-  HVector *OmegaList=GetOmegaList(OmegaFile, OmegaVals, nOmegaVals,
-                                  LambdaFile, LambdaVals, nLambdaVals);
-  if (OmegaList==0)
-   OSUsage(argv[0], OSArray, "you must specify at least one frequency");
+  /* Now only one frequency is used actually */
+  HVector *FreqList(0);
+  if (nFrequency) {
+    FreqList = new HVector(nFrequency);
+    memcpy(FreqList->DV, FrequencyValues, nFrequency*sizeof(double));
+  } else {
+    OSUsage(argv[0], OSArray, "You must specify at least one frequency");
+  }
 
   /*******************************************************************/
   /* process incident-field-related options to construct the data    */
@@ -283,108 +304,130 @@ int main(int argc, char *argv[])
   /*******************************************************************/
   SSData MySSData, *SSD=&MySSData;
 
-  RWGGeometry *G      = SSD->G   = new RWGGeometry(GeoFile);
-  HMatrix *M          = SSD->M   = G->AllocateBEMMatrix();
-  HVector *RHS        = SSD->RHS = G->AllocateRHSVector();
-  HVector *KN         = SSD->KN  = G->AllocateRHSVector();
-  double *kBloch      = SSD->kBloch = 0;
-  SSD->IF             = 0;
-  SSD->TransformLabel = 0;
-  SSD->IFLabel        = 0;
-  SSD->FileBase       = FileBase;
+  /* Prepare MeshSize data */
+  MSData MyMSData, *MSD=&MyMSData;
+  MSD->percentage = percentage;
+  MSD->type = method;
+  if (MeshSize<0) {
+    double C0 = 299792458.0;
+    double maxFreq = 0;
+    for (int nFreq=0; nFreq<FreqList->N; nFreq++)
+      if (maxFreq < FreqList->GetEntryD(nFreq))
+        maxFreq = FreqList->GetEntryD(nFreq);
+    MSD->meshSize = C0/(maxFreq*1e9)/6;
+  } else {
+    MSD->meshSize = MeshSize;
+  }
+  if (NumIter<0) {
+    NumIter = 3;
+  }
+  StartBGMeshService(MSD);
+  sleep(1);
+  for (int iter=0; iter<NumIter; ++iter) {
 
-  if (LogLevel) G->SetLogLevel(LogLevel);
+    RWGGeometry *G      = SSD->G   = new RWGGeometry(GeoFile);
+    HMatrix *M          = SSD->M   = G->AllocateBEMMatrix();
+    HVector *RHS        = SSD->RHS = G->AllocateRHSVector();
+    HVector *KN         = SSD->KN  = G->AllocateRHSVector();
+    double *kBloch      = SSD->kBloch = 0;
+    SSD->IF             = 0;
+    SSD->TransformLabel = 0;
+    SSD->IFLabel        = 0;
+    SSD->FileBase       = FileBase;
 
-  /*--------------------------------------------------------------*/
-  /*- read the transformation file if one was specified and check */
-  /*- that it plays well with the specified geometry file.        */
-  /*- note if TransFile==0 then this code snippet still works; in */
-  /*- this case the list of GTComplices is initialized to contain */
-  /*- a single empty GTComplex and the check automatically passes.*/
-  /*--------------------------------------------------------------*/
-  int NumTransformations=0;
-  GTComplex **GTCList=ReadTransFile(TransFile, &NumTransformations);
-  char *ErrMsg=G->CheckGTCList(GTCList, NumTransformations);
-  if (ErrMsg)
-   ErrExit("file %s: %s",TransFile,ErrMsg);
+    if (LogLevel) G->SetLogLevel(LogLevel);
 
-  /*******************************************************************/
-  /* for periodic geometries, all incident field sources that are    */
-  /* active at a given time must involve  single incident field      */
-  /* source, which must be a plane wave, and the bloch wavevector    */
-  /* is extracted from the plane wave direction                      */
-  /*******************************************************************/
-  double kBlochBuffer[3];
-  if (G->LDim>0)
-   { if ( npwPol!=1 || ngbCenter!=0 || npsLoc!=0 )
+    /*--------------------------------------------------------------*/
+    /*- read the transformation file if one was specified and check */
+    /*- that it plays well with the specified geometry file.        */
+    /*- note if TransFile==0 then this code snippet still works; in */
+    /*- this case the list of GTComplices is initialized to contain */
+    /*- a single empty GTComplex and the check automatically passes.*/
+    /*--------------------------------------------------------------*/
+    int NumTransformations=0;
+    GTComplex **GTCList=ReadTransFile(TransFile, &NumTransformations);
+    char *ErrMsg=G->CheckGTCList(GTCList, NumTransformations);
+    if (ErrMsg)
+      ErrExit("file %s: %s",TransFile,ErrMsg);
+
+    /*******************************************************************/
+    /* for periodic geometries, all incident field sources that are    */
+    /* active at a given time must involve  single incident field      */
+    /* source, which must be a plane wave, and the bloch wavevector    */
+    /* is extracted from the plane wave direction                      */
+    /*******************************************************************/
+    double kBlochBuffer[3];
+    if (G->LDim>0)
+    { if ( npwPol!=1 || ngbCenter!=0 || npsLoc!=0 )
       ErrExit("for extended geometries, the incident field must be a single plane wave");
-     kBloch = SSD->kBloch = kBlochBuffer;
-   };
+      kBloch = SSD->kBloch = kBlochBuffer;
+    };
 
-  /*******************************************************************/
-  /* preload the scuff cache with any cache preload files the user   */
-  /* may have specified                                              */
-  /*******************************************************************/
-  if ( Cache!=0 && WriteCache!=0 )
-   ErrExit("--cache and --writecache options are mutually exclusive");
-  if (Cache) 
-   WriteCache=Cache;
-  for (int nrc=0; nrc<nReadCache; nrc++)
-   PreloadCache( ReadCache[nrc] );
-  if (Cache)
-   PreloadCache( Cache );
+    /*******************************************************************/
+    /* preload the scuff cache with any cache preload files the user   */
+    /* may have specified                                              */
+    /*******************************************************************/
+    if ( Cache!=0 && WriteCache!=0 )
+      ErrExit("--cache and --writecache options are mutually exclusive");
+    if (Cache) 
+      WriteCache=Cache;
+    for (int nrc=0; nrc<nReadCache; nrc++)
+      PreloadCache( ReadCache[nrc] );
+    if (Cache)
+      PreloadCache( Cache );
 
-  /*******************************************************************/
-  /*******************************************************************/
-  /*******************************************************************/
-  void *HDF5Context=0;
-  if (HDF5File)
-   HDF5Context=HMatrix::OpenHDF5Context(HDF5File);
+    /*******************************************************************/
+    /*******************************************************************/
+    /*******************************************************************/
+    void *HDF5Context=0;
+    if (HDF5File)
+      HDF5Context=HMatrix::OpenHDF5Context(HDF5File);
 
-  /*******************************************************************/
-  /* if we have more than one geometrical transformation,            */
-  /* allocate storage for BEM matrix blocks                          */
-  /*******************************************************************/
-  HMatrix **TBlocks=0, **UBlocks=0;
-  int NS=G->NumSurfaces;
-  if (NumTransformations>1)
-   { int NADB = NS*(NS-1)/2; // number of above-diagonal blocks
-     TBlocks  = (HMatrix **)mallocEC(NS*sizeof(HMatrix *));
-     UBlocks  = (HMatrix **)mallocEC(NADB*sizeof(HMatrix *));
-     for(int ns=0, nb=0; ns<NS; ns++)
+    /*******************************************************************/
+    /* if we have more than one geometrical transformation,            */
+    /* allocate storage for BEM matrix blocks                          */
+    /*******************************************************************/
+    HMatrix **TBlocks=0, **UBlocks=0;
+    int NS=G->NumSurfaces;
+    if (NumTransformations>1)
+    { int NADB = NS*(NS-1)/2; // number of above-diagonal blocks
+      TBlocks  = (HMatrix **)mallocEC(NS*sizeof(HMatrix *));
+      UBlocks  = (HMatrix **)mallocEC(NADB*sizeof(HMatrix *));
+      for(int ns=0, nb=0; ns<NS; ns++)
       { 
         int nsMate = G->Mate[ns];
         if ( nsMate!=-1 )
-         TBlocks[ns] = TBlocks[nsMate];
+          TBlocks[ns] = TBlocks[nsMate];
         else
-         { int NBF=G->Surfaces[ns]->NumBFs;
-           TBlocks[ns] = new HMatrix(NBF, NBF, M->RealComplex);
-         };
+        { int NBF=G->Surfaces[ns]->NumBFs;
+          TBlocks[ns] = new HMatrix(NBF, NBF, M->RealComplex);
+        };
 
         for(int nsp=ns+1; nsp<NS; nsp++, nb++)
-         { int NBF=G->Surfaces[ns]->NumBFs;
-           int NBFp=G->Surfaces[nsp]->NumBFs;
-           UBlocks[nb] = new HMatrix(NBF, NBFp, M->RealComplex);
-         };
+        { int NBF=G->Surfaces[ns]->NumBFs;
+          int NBFp=G->Surfaces[nsp]->NumBFs;
+          UBlocks[nb] = new HMatrix(NBF, NBFp, M->RealComplex);
+        };
       };
-   };
+    };
 
-  /*******************************************************************/
-  /* loop over frequencies *******************************************/
-  /*******************************************************************/
-  for(int nFreq=0; nFreq<OmegaList->N; nFreq++)
-   { 
-     cdouble Omega = OmegaList->GetEntry(nFreq);
-     SSD->Omega    = Omega;
+    /*******************************************************************/
+    /* loop over frequencies *******************************************/
+    /*******************************************************************/
+    for(int nFreq=0; nFreq<FreqList->N; nFreq++)
+    { 
+      double freq = FreqList->GetEntryD(nFreq);
+      cdouble Omega = cdouble(freq*FREQ2OMEGA, 0.0);
+      SSD->Omega    = Omega;
 
-     char OmegaStr[MAXSTR];
-     z2s(Omega, OmegaStr);
-     Log("Working at frequency %s...",OmegaStr);
+      char FreqStr[MAXSTR];
+      sprintf(FreqStr, "%lf", freq);
+      Log("Working at frequency %s GHz",FreqStr);
 
-     /*******************************************************************/
-     /* for periodic geometries, extract bloch wavevector from incident field */
-     /*******************************************************************/
-     if (G->LDim>0)
+      /*******************************************************************/
+      /* for periodic geometries, extract bloch wavevector from incident field */
+      /*******************************************************************/
+      if (G->LDim>0)
       { cdouble EpsExterior, MuExterior;
         G->RegionMPs[0]->GetEpsMu(Omega, &EpsExterior, &MuExterior);
         double kExterior = real( csqrt2(EpsExterior*MuExterior) * Omega );
@@ -393,68 +436,68 @@ int main(int argc, char *argv[])
         kBloch[2] = 0.0;
       };
 
-     /*******************************************************************/
-     /* if we have more than one transformation, pre-assemble diagonal  */
-     /* matrix blocks at this frequency; otherwise just assemble the    */
-     /* whole matrix                                                    */
-     /*******************************************************************/
-     if (NumTransformations==1)
-      G->AssembleBEMMatrix(Omega, kBloch, M);
-     else
-      for(int ns=0; ns<G->NumSurfaces; ns++)
-       if (G->Mate[ns]==-1)
-        G->AssembleBEMMatrixBlock(ns, ns, Omega, kBloch, TBlocks[ns]);
+      /*******************************************************************/
+      /* if we have more than one transformation, pre-assemble diagonal  */
+      /* matrix blocks at this frequency; otherwise just assemble the    */
+      /* whole matrix                                                    */
+      /*******************************************************************/
+      if (NumTransformations==1)
+        G->AssembleBEMMatrix(Omega, kBloch, M);
+      else
+        for(int ns=0; ns<G->NumSurfaces; ns++)
+          if (G->Mate[ns]==-1)
+            G->AssembleBEMMatrixBlock(ns, ns, Omega, kBloch, TBlocks[ns]);
 
-     /*******************************************************************/
-     /* dump the scuff cache to a cache storage file if requested. note */
-     /* we do this only once per execution of the program, after the    */
-     /* assembly of the diagonal BEM matrix blocks at first frequency,  */
-     /* since at that point all cache elements that are to be computed  */
-     /* will have been computed and the cache will not grow any further */
-     /* for the rest of the program run.                                */
-     /*******************************************************************/
-     if (WriteCache)
+      /*******************************************************************/
+      /* dump the scuff cache to a cache storage file if requested. note */
+      /* we do this only once per execution of the program, after the    */
+      /* assembly of the diagonal BEM matrix blocks at first frequency,  */
+      /* since at that point all cache elements that are to be computed  */
+      /* will have been computed and the cache will not grow any further */
+      /* for the rest of the program run.                                */
+      /*******************************************************************/
+      if (WriteCache)
       { StoreCache( WriteCache );
         WriteCache=0;       
       };
 
-     /*******************************************************************/
-     /*******************************************************************/
-     /*******************************************************************/
-     for(int nt=0; nt<NumTransformations; nt++)
+      /*******************************************************************/
+      /*******************************************************************/
+      /*******************************************************************/
+      for(int nt=0; nt<NumTransformations; nt++)
       {
         char TransformStr[100]="";
         if (TransFile)
-         { G->Transform(GTCList[nt]);
-           SSD->TransformLabel=GTCList[nt]->Tag;
-           Log("Working at transformation %s...",SSD->TransformLabel);
-           snprintf(TransformStr,100,"_%s",SSD->TransformLabel);
-         };
+        { G->Transform(GTCList[nt]);
+          SSD->TransformLabel=GTCList[nt]->Tag;
+          Log("Working at transformation %s...",SSD->TransformLabel);
+          snprintf(TransformStr,100,"_%s",SSD->TransformLabel);
+        };
 
         /*******************************************************************/
         /* assemble and insert off-diagonal blocks as necessary ************/
         /*******************************************************************/
         if (NumTransformations>1)
-         { for(int ns=0, nb=0; ns<G->NumSurfaces; ns++)
-            for(int nsp=ns+1; nsp<G->NumSurfaces; nsp++, nb++)
-             G->AssembleBEMMatrixBlock(ns, nsp, Omega, kBloch, UBlocks[nb]);
+        { for(int ns=0, nb=0; ns<G->NumSurfaces; ns++)
+          for(int nsp=ns+1; nsp<G->NumSurfaces; nsp++, nb++)
+            G->AssembleBEMMatrixBlock(ns, nsp, Omega, kBloch, UBlocks[nb]);
 
-           for(int ns=0, nb=0; ns<G->NumSurfaces; ns++)
-            { int RowOffset=G->BFIndexOffset[ns];
-              M->InsertBlock(TBlocks[ns], RowOffset, RowOffset);
-              for(int nsp=ns+1; nsp<G->NumSurfaces; nsp++, nb++)
-               { int ColOffset=G->BFIndexOffset[nsp];
-                 M->InsertBlock(UBlocks[nb], RowOffset, ColOffset);
-                 M->InsertBlockAdjoint(UBlocks[nb], ColOffset, RowOffset);
-               };
+          for(int ns=0, nb=0; ns<G->NumSurfaces; ns++)
+          { int RowOffset=G->BFIndexOffset[ns];
+            M->InsertBlock(TBlocks[ns], RowOffset, RowOffset);
+            for(int nsp=ns+1; nsp<G->NumSurfaces; nsp++, nb++)
+            { int ColOffset=G->BFIndexOffset[nsp];
+              M->InsertBlock(UBlocks[nb], RowOffset, ColOffset);
+              M->InsertBlockAdjoint(UBlocks[nb], ColOffset, RowOffset);
             };
-         };
+          };
+        };
 
         /*******************************************************************/
         /* export BEM matrix to a binary .hdf5 file if that was requested  */
         /*******************************************************************/
         if (HDF5Context)
-         M->ExportToHDF5(HDF5Context,"M_%s%s",OmegaStr,TransformStr);
+          M->ExportToHDF5(HDF5Context,"M_%s%s",FreqStr,TransformStr);
 
         /*******************************************************************/
         /* if the user requested no output options (for example, if she   **/
@@ -462,7 +505,7 @@ int main(int argc, char *argv[])
         /* bother LU-factorizing the matrix or assembling the RHS vector. **/
         /*******************************************************************/
         if ( !NeedIncidentField )
-         continue;
+          continue;
 
         /*******************************************************************/
         /* LU-factorize the BEM matrix to prepare for solving scattering   */
@@ -475,90 +518,90 @@ int main(int argc, char *argv[])
         /* loop over incident fields                                   */
         /***************************************************************/
         for(int nIF=0; nIF<IFList->NumIFs; nIF++)
-         { 
-           IF = SSD->IF = IFList->IFs[nIF];
-           SSD->IFLabel = IFFile ? IFList->Labels[nIF] : 0;
-           if (SSD->IFLabel)
+        { 
+          IF = SSD->IF = IFList->IFs[nIF];
+          SSD->IFLabel = IFFile ? IFList->Labels[nIF] : 0;
+          if (SSD->IFLabel)
             Log("  Processing incident field %s...",SSD->IFLabel);
 
-           char IFStr[100]="";
-           if (SSD->IFLabel)
+          char IFStr[100]="";
+          if (SSD->IFLabel)
             snprintf(IFStr,100,"_%s",SSD->IFLabel);
-   
-           /***************************************************************/
-           /* assemble RHS vector and solve BEM system*********************/
-           /***************************************************************/
-           Log("  Assembling RHS vector...");
-           G->AssembleRHSVector(Omega, kBloch, IF, KN);
-           RHS->Copy(KN); // copy RHS vector for later 
-           Log("  Solving the BEM system...");
-           M->LUSolve(KN);
-   
-           if (HDF5Context)
-            { RHS->ExportToHDF5(HDF5Context,"RHS_%s%s%s",OmegaStr,TransformStr,IFStr);
-              KN->ExportToHDF5(HDF5Context,"KN_%s%s%s",OmegaStr,TransformStr,IFStr);
-            };
-   
-           /***************************************************************/
-           /* now process all requested outputs                           */
-           /***************************************************************/
-   
-           /*--------------------------------------------------------------*/
-           /*- power, force, torque by various methods --------------------*/
-           /*--------------------------------------------------------------*/
-           if (OPFTFile)
+
+          /***************************************************************/
+          /* assemble RHS vector and solve BEM system*********************/
+          /***************************************************************/
+          Log("  Assembling RHS vector...");
+          G->AssembleRHSVector(Omega, kBloch, IF, KN);
+          RHS->Copy(KN); // copy RHS vector for later 
+          Log("  Solving the BEM system...");
+          M->LUSolve(KN);
+
+          if (HDF5Context)
+          { RHS->ExportToHDF5(HDF5Context,"RHS_%s%s%s",FreqStr,TransformStr,IFStr);
+            KN->ExportToHDF5(HDF5Context,"KN_%s%s%s",FreqStr,TransformStr,IFStr);
+          };
+
+          /***************************************************************/
+          /* now process all requested outputs                           */
+          /***************************************************************/
+
+          /*--------------------------------------------------------------*/
+          /*- power, force, torque by various methods --------------------*/
+          /*--------------------------------------------------------------*/
+          if (OPFTFile)
             WritePFTFile(SSD, PFTOpts, SCUFF_PFT_OVERLAP, PlotPFTFlux, OPFTFile);
-      
-           if (MomentPFTFile)
+
+          if (MomentPFTFile)
             WritePFTFile(SSD, PFTOpts, SCUFF_PFT_MOMENTS, PlotPFTFlux, MomentPFTFile);
-      
-           if (DSIPFTFile)
-            { PFTOpts->DSIPoints=DSIPoints;
-              WritePFTFile(SSD, PFTOpts, SCUFF_PFT_DSI, PlotPFTFlux, DSIPFTFile);
-            };
-      
-           if (DSIPFTFile2)
-            { PFTOpts->DSIPoints=DSIPoints2;
-              WritePFTFile(SSD, PFTOpts, SCUFF_PFT_DSI, PlotPFTFlux, DSIPFTFile2);
-            };
-      
-           if (EMTPFTFile)
+
+          if (DSIPFTFile)
+          { PFTOpts->DSIPoints=DSIPoints;
+            WritePFTFile(SSD, PFTOpts, SCUFF_PFT_DSI, PlotPFTFlux, DSIPFTFile);
+          };
+
+          if (DSIPFTFile2)
+          { PFTOpts->DSIPoints=DSIPoints2;
+            WritePFTFile(SSD, PFTOpts, SCUFF_PFT_DSI, PlotPFTFlux, DSIPFTFile2);
+          };
+
+          if (EMTPFTFile)
             WritePFTFile(SSD, PFTOpts, SCUFF_PFT_EMT, PlotPFTFlux, EMTPFTFile);
-      
-           /*--------------------------------------------------------------*/
-           /*- panel source densities -------------------------------------*/
-           /*--------------------------------------------------------------*/
-           if (PSDFile)
+
+          /*--------------------------------------------------------------*/
+          /*- panel source densities -------------------------------------*/
+          /*--------------------------------------------------------------*/
+          if (PSDFile)
             WritePSDFile(SSD, PSDFile);
-       
-           /*--------------------------------------------------------------*/
-           /*- scattered fields at user-specified points ------------------*/
-           /*--------------------------------------------------------------*/
-           int nepf;
-           for(nepf=0; nepf<nEPFiles; nepf++)
+
+          /*--------------------------------------------------------------*/
+          /*- scattered fields at user-specified points ------------------*/
+          /*--------------------------------------------------------------*/
+          int nepf;
+          for(nepf=0; nepf<nEPFiles; nepf++)
             ProcessEPFile(SSD, EPFiles[nepf]);
-      
-           /*--------------------------------------------------------------*/
-           /*- induced dipole moments       -------------------------------*/
-           /*--------------------------------------------------------------*/
-           if (MomentFile)
+
+          /*--------------------------------------------------------------*/
+          /*- induced dipole moments       -------------------------------*/
+          /*--------------------------------------------------------------*/
+          if (MomentFile)
             GetMoments(SSD, MomentFile);
-      
-           /*--------------------------------------------------------------*/
-           /*- surface current visualization-------------------------------*/
-           /*--------------------------------------------------------------*/
-           if (PlotSurfaceCurrents)
+
+          /*--------------------------------------------------------------*/
+          /*- surface current visualization-------------------------------*/
+          /*--------------------------------------------------------------*/
+          if (PlotSurfaceCurrents)
             G->PlotSurfaceCurrents(KN, Omega, SSD->kBloch, "%s.pp", FileBase);
-      
-           /*--------------------------------------------------------------*/
-           /*- field visualization meshes ---------------------------------*/
-           /*--------------------------------------------------------------*/
-           int nfm;
-           for(nfm=0; nfm<nFVMeshes; nfm++)
+
+          /*--------------------------------------------------------------*/
+          /*- field visualization meshes ---------------------------------*/
+          /*--------------------------------------------------------------*/
+          int nfm;
+          for(nfm=0; nfm<nFVMeshes; nfm++)
             VisualizeFields(SSD, FVMeshes[nfm], FVMeshTransFiles[nfm], FVFuncs[nfm]);
 
-         }; // for(int nIF=0; nIF<IFList->NumIFs; nIF++
-      
+        }; // for(int nIF=0; nIF<IFList->NumIFs; nIF++
+
         /*******************************************************************/
         /*******************************************************************/
         /*******************************************************************/
@@ -566,13 +609,17 @@ int main(int argc, char *argv[])
 
       }; // for(int nt=0; nt<NumTransformations; nt++)
 
-   }; //  for(nFreq=0; nFreq<NumFreqs; nFreqs++)
-  
-  /***************************************************************/
-  /***************************************************************/
-  /***************************************************************/
-  if (HDF5Context)
-   HMatrix::CloseHDF5Context(HDF5Context);
+    }; //  for(nFreq=0; nFreq<NumFreqs; nFreqs++)
+
+    /***************************************************************/
+    /***************************************************************/
+    /***************************************************************/
+    if (HDF5Context)
+      HMatrix::CloseHDF5Context(HDF5Context);
+
+    UpdateBGMeshService(MSD);
+  }
+  EndBGMeshService(MSD);
   printf("Thank you for your support.\n");
    
 }

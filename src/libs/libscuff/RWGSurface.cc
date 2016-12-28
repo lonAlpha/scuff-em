@@ -140,8 +140,9 @@ RWGSurface::RWGSurface(FILE *f, const char *pLabel, int *LineNum, char *Keyword)
           // Find the 1st available file name; 
           while (i<maxTry) 
           {
-            if (access((baseName+std::to_string(i)).c_str(), F_OK)==-1) 
+            if (access((baseName+std::to_string(i)+".geo").c_str(), F_OK)==-1) 
               break;
+            ++i;
           }
           if (i==maxTry) ErrExit("Please cleanup _adapt_ files");
           tmpGeoName = baseName + std::to_string(i) + ".geo";
@@ -155,8 +156,8 @@ RWGSurface::RWGSurface(FILE *f, const char *pLabel, int *LineNum, char *Keyword)
           FILE *fp;
           fp = fopen(tmpGeoName.c_str(),"a");
           fprintf(fp, "Field[10000]=ExternalProcess;\n");
-          fprintf(fp, "Field[10000].CommandLine=\"./bgm.py\"\n");
-          fprintf(fp, "Mesh.CharacteristicLengthExtendFromBoundary = 0;\n");
+          fprintf(fp, "Field[10000].CommandLine=\"./bgm.py\";\n");
+          fprintf(fp, "Mesh.CharacteristicLengthExtendFromBoundary=0;\n");
           fprintf(fp, "Background Field=10000;\n");
           fclose(fp);
         }
