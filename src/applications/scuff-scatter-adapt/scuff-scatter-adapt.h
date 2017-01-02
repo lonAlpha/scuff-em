@@ -72,7 +72,6 @@ void VisualizeFields(SSData *SSData,
 
 enum RefineType {
   RTUniform=0, 
-  RTCurrent, 
   RTCurrentDensity, 
   RTCharge, 
   RTChargeDensity
@@ -84,15 +83,19 @@ enum RefineType {
 /*
  * MeshSize data 
  */
+struct QueryObject;
 struct MSData
 {
   RefineType type;
-  bool firstIteration; 
+  int n; //Store current number of iteration; starting from 0;
   double meshSize; /* type==RTUniform; */
   SSData *ssdata;
   pthread_t threadId;    /* Later this is used to terminate thread */
 
   double percentage; 
+  QueryObject *query;
+  double minVal, maxVal;
+  double a,b;
 };
 
 void StartBGMeshService(MSData *msdata);
@@ -100,4 +103,21 @@ void UpdateBGMeshService(MSData *msdata);
 void EndBGMeshService(MSData *msdata);
 
 
+struct kdtree;
+struct QueryObject
+{
+  QueryObject(SSData *SSD);
+  ~QueryObject();
+  void CurrentDensityAtLoc(const double X[3], cdouble Current[3]);
+//  private: 
+  
+  cdouble Omega;
+  HVector *KN;
+  RWGGeometry *G;
+  kdtree **KDTrees;
+  double *SearchRadius;
+  bool inited;
+};
+
+char *MethodStr(RefineType method);
 #endif

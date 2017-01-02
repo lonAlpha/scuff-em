@@ -165,7 +165,7 @@ RWGSurface::RWGSurface(FILE *f, const char *pLabel, int *LineNum, char *Keyword)
         cmdName += tmpGeoName + " -o "+tmpMeshName;
         int status = vsystem(cmdName.c_str());
         if (status==0) 
-          MeshFileName = const_cast<char *>(tmpMeshName.c_str());
+          MeshFileName = strdupEC((tmpMeshName.c_str()));
         else 
           ErrExit("Error occurs when runnning:\n%s\n", cmdName.c_str());
      }

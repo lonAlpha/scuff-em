@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
   int NumIter(-1);
   double MeshSize(-1.0);
   double percentage(0.1);
+  double a(0.1), b(1.0);
   RefineType method(RTUniform);
 //
   double pwDir[3*MAXPW];             int npwDir;
@@ -129,6 +130,11 @@ int main(int argc, char *argv[])
   char *ReadCache[MAXCACHE];         int nReadCache;
   char *WriteCache=0;
   char *LogLevel=0;
+
+  // DebugLevel = 
+  // 1: Write BEM Matrix to file; 
+  // 2: Load BEM Marix from file in gdb;
+  int DebugLevel = 0;
   /* name               type    #args  max_instances  storage           count         description*/
   OptStruct OSArray[]=
    { 
@@ -136,7 +142,10 @@ int main(int argc, char *argv[])
 /**/
      {"frequency",      PA_DOUBLE,  1, MAXFREQ, (void *)FrequencyValues,  &nFrequency,   "frequency (GHz)"},
      {"iteration",      PA_INT,     1, 1,       (void *)&NumIter,     0,            "Num of iteration to refine mesh"},
+     {"DebugLevel",      PA_INT,     1, 1,       (void *)&DebugLevel,     0,            "DebugLevel"},
      {"meshsize",       PA_DOUBLE,  1, 1,       (void *)&MeshSize,   0,             "Initial mesh size"}, 
+     {"a",       PA_DOUBLE,  1, 1,       (void *)&a,   0,             "value of argument a"}, 
+     {"b",       PA_DOUBLE,  1, 1,       (void *)&b,   0,             "value of argument b"}, 
      {"percentage",     PA_DOUBLE,  1, 1,       (void *)&percentage, 0,             "Refinement percentage between iterations"},
      {"method",         PA_INT,     1, 1,       (void *)&method,     0,             "Refine method"},
      {"Lambda",         PA_CDOUBLE, 1, MAXFREQ, (void *)LambdaVals,  &nLambdaVals,  "wavelength"},
@@ -158,7 +167,6 @@ int main(int argc, char *argv[])
      {"TransFile",      PA_STRING,  1, 1,       (void *)&TransFile,  0,             "list of geometrical transformations\n"},
 /**/
      {"EPFile",         PA_STRING,  1, MAXEPF,  (void *)EPFiles,     &nEPFiles,     "list of evaluation points"},
-     {"FileBase",       PA_STRING,  1, 1,       (void *)&FileBase,   0,             "base filename for EPFile output\n\n"},
 /**/
      {"FVMesh",         PA_STRING,  1, MAXFVM,  (void *)FVMeshes,    &nFVMeshes,    "field visualization mesh"},
      {"FVMeshTransFile", PA_STRING,  1, MAXFVM,  (void *)FVMeshTransFiles,    &nFVMeshTransFiles,    "list of geometrical transformations for FVMesh"},
@@ -197,9 +205,6 @@ int main(int argc, char *argv[])
 
   if (GeoFile==0)
    OSUsage(argv[0], OSArray, "--geometry option is mandatory");
-
-  if (FileBase==0) 
-   FileBase=vstrdup(GetFileBase(GeoFile));
 
   /*******************************************************************/
   /* process frequency-related options                               */
@@ -306,6 +311,7 @@ int main(int argc, char *argv[])
 
   /* Prepare MeshSize data */
   MSData MyMSData, *MSD=&MyMSData;
+  MSD->ssdata = SSD;
   MSD->percentage = percentage;
   MSD->type = method;
   if (MeshSize<0) {
@@ -318,14 +324,31 @@ int main(int argc, char *argv[])
   } else {
     MSD->meshSize = MeshSize;
   }
+  printf("Initial mesh size: %lf\n", MSD->meshSize);
+  MSD->a = a;
+  MSD->b = b;
   if (NumIter<0) {
     NumIter = 3;
   }
+  MSD->n = 0;
   StartBGMeshService(MSD);
   sleep(1);
+  Log("Mesh refine method: %s\n", MethodStr(method));
+  if (DebugLevel==2) {
+    RWGGeometry *G = SSD-> = new RWGGeometry(GeoFile);// MESHFILE, not GEOFILE, should be specified in this GeoFile,
+    HMatrix *M   = SSD->M = 0;
+    HVector *RHS = SSD->RHS = 0;
+    HVector *KN  = SSD->KN = 0;
+    printf("Set breakpoint here; Load matrix/vector from hdf5 file in gdb\n");
+    M->LUFactorize();
+  } else 
   for (int iter=0; iter<NumIter; ++iter) {
 
+    Log("Mesh size range for current iteration: [%lf, %lf]\n", 
+        MSD->meshSize / pow(1+MSD->a+MSD->b, MSD->n),
+        MSD->meshSize / pow(1+MSD->a, MSD->n));
     RWGGeometry *G      = SSD->G   = new RWGGeometry(GeoFile);
+    FileBase = vstrdup(GetFileBase(G->Surfaces[0]->MeshFileName));
     HMatrix *M          = SSD->M   = G->AllocateBEMMatrix();
     HVector *RHS        = SSD->RHS = G->AllocateRHSVector();
     HVector *KN         = SSD->KN  = G->AllocateRHSVector();
@@ -423,6 +446,7 @@ int main(int argc, char *argv[])
       char FreqStr[MAXSTR];
       sprintf(FreqStr, "%lf", freq);
       Log("Working at frequency %s GHz",FreqStr);
+
 
       /*******************************************************************/
       /* for periodic geometries, extract bloch wavevector from incident field */
@@ -590,8 +614,10 @@ int main(int argc, char *argv[])
           /*--------------------------------------------------------------*/
           /*- surface current visualization-------------------------------*/
           /*--------------------------------------------------------------*/
-          if (PlotSurfaceCurrents)
+          if (PlotSurfaceCurrents) {
+            // Use the file name of 1st surface;
             G->PlotSurfaceCurrents(KN, Omega, SSD->kBloch, "%s.pp", FileBase);
+          }
 
           /*--------------------------------------------------------------*/
           /*- field visualization meshes ---------------------------------*/
@@ -617,8 +643,28 @@ int main(int argc, char *argv[])
     if (HDF5Context)
       HMatrix::CloseHDF5Context(HDF5Context);
 
+    if (DebugLevel==1) {
+      char file1[MAXSTR], file2[MAXSTR], file3[MAXSTR];
+      sprintf(file1, "%s_M.hdf5", FileBase);
+      sprintf(file2, "%s_KN.hdf5", FileBase);
+      sprintf(file3, "%s_RHS.hdf5", FileBase);
+      SSD->M->ExportToHDF5(file1, "M");
+      SSD->KN->ExportToHDF5(file2, "KN");
+      SSD->RHS->ExportToHDF5(file3, "RHS");
+    }
+
     UpdateBGMeshService(MSD);
   }
+/*
+#ifdef 0
+  double xx[3];
+  cdouble xxcurr[3];
+  xx[0] = -0.00093641513446707193;
+  xx[1] = 0.00093641513446707193;
+  xx[2] = -0.0087942819169419279;
+  MSD->query->CurrentDensityAtLoc(xx, xxcurr);
+#endif
+*/
   EndBGMeshService(MSD);
   printf("Thank you for your support.\n");
    
