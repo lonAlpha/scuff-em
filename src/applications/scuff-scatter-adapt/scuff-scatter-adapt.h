@@ -116,7 +116,35 @@ struct QueryObject
   RWGGeometry *G;
   kdtree **KDTrees;
   double *SearchRadius;
+  double minEdgeLength;
+  double lengthEps;
+  double angleEps;
   bool inited;
+  bool IsSamePoint(const double X[3], const double Y[3]);
+  bool IsSameValue(double x, double y);
+  bool IsSameAngle(double x, double y);
+  void PointTriangleDistance(const double *X, 
+                             const double *V1, 
+                             const double *V2, 
+                             const double *V3, 
+                             double *distance, 
+                             int *insideTriangle,
+                             double point[3]);
+  void PointTriangleDistance(const double *X, 
+                             RWGSurface *S, 
+                             RWGPanel *p, 
+                             double *distance, 
+                             int *insideTriangle,
+                             double point[3]);
+  int InsideTriangle(const double *X, 
+                     const double *V1, 
+                     const double *V2, 
+                     const double *V3, 
+                     const double *L=0);
+  int InsideTriangle(const double *X, 
+                     RWGSurface *S, 
+                     RWGPanel *p);
+
 };
 
 char *MethodStr(RefineType method);

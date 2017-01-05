@@ -335,12 +335,22 @@ int main(int argc, char *argv[])
   sleep(1);
   Log("Mesh refine method: %s\n", MethodStr(method));
   if (DebugLevel==2) {
-    RWGGeometry *G = SSD-> = new RWGGeometry(GeoFile);// MESHFILE, not GEOFILE, should be specified in this GeoFile,
-    HMatrix *M   = SSD->M = 0;
-    HVector *RHS = SSD->RHS = 0;
-    HVector *KN  = SSD->KN = 0;
-    printf("Set breakpoint here; Load matrix/vector from hdf5 file in gdb\n");
-    M->LUFactorize();
+    RWGGeometry *G = SSD->G = new RWGGeometry(GeoFile);// MESHFILE, not GEOFILE, should be specified in this GeoFile,
+    FileBase = vstrdup(GetFileBase(G->Surfaces[0]->MeshFileName));
+    char file1[MAXSTR], file2[MAXSTR], file3[MAXSTR];
+    sprintf(file1, "%s_M.hdf5", FileBase);
+    sprintf(file2, "%s_KN.hdf5", FileBase);
+    sprintf(file3, "%s_RHS.hdf5", FileBase);
+    HMatrix *M   = SSD->M = new HMatrix(file1, LHM_HDF5, "M");
+    HVector *KN  = SSD->KN = new HVector(file2, LHM_HDF5, "KN");
+    HVector *RHS = SSD->RHS = new HVector(file3, LHM_HDF5, "RHS");
+    QueryObject *qo = new QueryObject(SSD);
+    double x[3];
+    cdouble current[3];
+    x[0] = 0.000000;
+    x[1] = 8.333333;
+    x[2] = 7.449345;
+    qo->CurrentDensityAtLoc(x, current);
   } else 
   for (int iter=0; iter<NumIter; ++iter) {
 

@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <assert.h>
+#include <climits>
 
 #include "kdtree.h"
 
@@ -26,9 +27,10 @@
 #define IT_ONVERTEX 1
 #define IT_ONEDGE   2
 #define IT_INTERIOR 3
-int InsideTriangle(const double *X,
+
+int QueryObject::InsideTriangle(const double *X,
                    const double *V1, const double *V2, const double *V3,
-                   const double *L=0)
+                   const double *L)
 {
   /***************************************************************/
   /***************************************************************/
@@ -61,27 +63,27 @@ int InsideTriangle(const double *X,
   /* relative to an appropriate lengthscale, probably the minimum*/
   /* edge length.                                                */
   /***************************************************************/
-  if ( Length1<=1.0e-6 || Length2<=1.0e-6 || Length3<=1.0e-6 )
+  if (IsSameValue(Length1,0) || IsSameValue(Length2,0) || IsSameValue(Length3,0))
    return IT_ONVERTEX;
 
   /***************************************************************/
   /* compute angles subtended at vertex pairs ********************/
   /***************************************************************/
-  double Angle1=acos( ((float)VecDot(V1mX, V2mX)) / ((float)(Length1*Length2)) );
-  double Angle2=acos( ((float)VecDot(V2mX, V3mX)) / ((float)(Length2*Length3)) );
-  double Angle3=acos( ((float)VecDot(V3mX, V1mX)) / ((float)(Length3*Length1)) );
+  double Angle1=acos( (VecDot(V1mX, V2mX)) / ((Length1*Length2)) );
+  double Angle2=acos( (VecDot(V2mX, V3mX)) / ((Length2*Length3)) );
+  double Angle3=acos( (VecDot(V3mX, V1mX)) / ((Length3*Length1)) );
 
   /***************************************************************/
   /* detect point on edge  ***************************************/
   /***************************************************************/
-  if ( EqualFloat(Angle1, M_PI ) ) return IT_ONEDGE;
-  if ( EqualFloat(Angle2, M_PI ) ) return IT_ONEDGE;
-  if ( EqualFloat(Angle3, M_PI ) ) return IT_ONEDGE;
+  if ( IsSameAngle(Angle1, M_PI ) ) return IT_ONEDGE;
+  if ( IsSameAngle(Angle2, M_PI ) ) return IT_ONEDGE;
+  if ( IsSameAngle(Angle3, M_PI ) ) return IT_ONEDGE;
 
   /***************************************************************/
   /* detect point in interior ************************************/
   /***************************************************************/
-  if ( fabs(Angle1+Angle2+Angle3 - 2.0*M_PI) < 1.0e-6 )
+  if ( IsSameAngle(Angle1+Angle2+Angle3, 2.0*M_PI))
    return IT_INTERIOR;
 
   return IT_EXTERIOR;
@@ -267,6 +269,7 @@ QueryObject::QueryObject(SSData *SSD)
   Omega = SSD->Omega;
   KN = SSD->KN;
   KDTrees = (kdtree**)malloc(sizeof(kdtree*)*NumSurfaces);
+  minEdgeLength = LONG_MAX;
 
   for (int ns=0; ns<NumSurfaces; ++ns) {
 
@@ -276,11 +279,16 @@ QueryObject::QueryObject(SSData *SSD)
     for (int np=0; np<S->NumPanels; ++np) {
       double *x = S->Panels[np]->Centroid;
       assert(kd_insert3(KDTrees[ns], x[0],x[1],x[2], (void *)(S->Panels[np]))==0);
-      if (SearchRadius[ns] < S->Panels[np]->Radius)
-        SearchRadius[ns] = S->Panels[np]->Radius;
+      SearchRadius[ns]=fmax(SearchRadius[ns], S->Panels[np]->Radius);
+    }
+
+    for (int ne=0; ne<S->NumEdges; ++ne) {
+      minEdgeLength = fmin(minEdgeLength, S->Edges[ne]->Length);
     }
   }
   inited = true;
+  lengthEps = 1e-5*minEdgeLength;
+  angleEps = 1e-5;
 }
 
 QueryObject::~QueryObject()
@@ -292,13 +300,29 @@ QueryObject::~QueryObject()
   inited = false;
 }
 
-int InsideTriangle(const double *X, RWGSurface *S, RWGPanel *p)
+int QueryObject::InsideTriangle(const double *X, RWGSurface *S, RWGPanel *p)
 {
   return InsideTriangle(X, 
                         &(S->Vertices[3*(p->VI[0])]),
                         &(S->Vertices[3*(p->VI[1])]), 
                         &(S->Vertices[3*(p->VI[2])]),
                         0);
+}
+
+void QueryObject::PointTriangleDistance(const double *X, 
+                                        RWGSurface *S, 
+                                        RWGPanel *p, 
+                                        double *distance, 
+                                        int *insideTriangle,
+                                        double point[3])
+{
+  return PointTriangleDistance(X, 
+                               &(S->Vertices[3*(p->VI[0])]),
+                               &(S->Vertices[3*(p->VI[1])]),
+                               &(S->Vertices[3*(p->VI[2])]),
+                               distance, 
+                               insideTriangle,
+                               point);
 }
 
 
@@ -308,58 +332,37 @@ int InsideTriangle(const double *X, RWGSurface *S, RWGPanel *p)
 void QueryObject::CurrentDensityAtLoc(const double X[3], cdouble Current[3])
 {
   assert(inited);
-  bool found = false;
-  kdres *result;
-  cdouble II(0.0, 1.0);
-  cdouble iw=II*Omega;
+
+  double XDist(INT_MAX);
+  int XIT; // X inside triangle? IT_ONVERTEX | IT_ONEDGE | IT_EXTERIOR | IT_INTERIOR;
+  double XPoint[3]; // XPoint is X projected to triangle;
+  RWGPanel *XP(0); // XPoint lies in panel XP
+  int XnS; // XPoint lies in surface G->Surfaces[XnS];
+
+  double tmpDist; 
+  int tmpIT;
+  double tmpPoint[3];
+
+
+  bool found(false);
+
   for (int ns=0; (ns< G->NumSurfaces) && (!found); ++ns) {
 
     RWGSurface *S = G->Surfaces[ns];
-    result = kd_nearest_range3(KDTrees[ns], X[0], X[1], X[2], SearchRadius[ns]);
+    kdres *result = kd_nearest_range3(KDTrees[ns], X[0], X[1], X[2], SearchRadius[ns]);
 
     if (kd_res_size(result)!=0) {
       kdres *kdIter = result;
       while (!kd_res_end(kdIter)) {
         RWGPanel *P = (RWGPanel *)kd_res_item(kdIter, 0);
-        if (InsideTriangle(X, S, P)) {
-
-          int np=P->Index;
-          cdouble K[3]={0.0,0.0,0.0}, Sigma=0.0;
-          cdouble N[3]={0.0,0.0,0.0}, Eta=0.0;
-          for(int nce=0; nce<3; nce++) // 'number of contributing edges'
-          {
-            int ne = P->EI[nce];
-            if (ne < 0) continue; // panel edge #nce is an exterior edge
-
-            // get the value of the RWG basis function associated with panel edge #nce
-            // at the panel centroid
-            RWGEdge *E    = S->Edges[ne];
-            double *Q     = S->Vertices + 3*(P->VI[nce]);
-            double Sign   = ( (np == E->iMPanel) ? -1.0 : 1.0);
-            double PreFac = Sign * E->Length / (2.0*P->Area);
-
-            double fRWG[3];
-            fRWG[0] = PreFac * (X[0] - Q[0]);
-            fRWG[1] = PreFac * (X[1] - Q[1]);
-            fRWG[2] = PreFac * (X[2] - Q[2]);
-
-            // look up the coefficients of this RWG basis function in the
-            // expansions of the electric and magnetic surface currents
-            cdouble KAlpha, NAlpha;
-            G->GetKNCoefficients(KN, ns, ne, &KAlpha, &NAlpha);
-
-            // add the contributions of this RWG basis function to
-            // the source densities at X
-            VecPlusEquals(K, KAlpha, fRWG);
-            Sigma += 2.0*KAlpha*PreFac / iw;
-            VecPlusEquals(N, NAlpha, fRWG);
-            Eta   += 2.0*NAlpha*PreFac / iw;
-          }; // for(int nce=0; nce<3; nce++)
-          Current[0] = K[0];
-          Current[1] = K[1];
-          Current[2] = K[2];
+        PointTriangleDistance(X, S, P, &tmpDist, &tmpIT, tmpPoint);
+        if ((tmpIT) && (tmpDist < XDist)) {
+          XDist = tmpDist;
+          XIT = tmpIT;
+          VecCopy(tmpPoint, XPoint);
+          XP = P;
+          XnS = ns;
           found = true;
-          break;
         }
         kd_res_next(kdIter);
       }
@@ -367,6 +370,51 @@ void QueryObject::CurrentDensityAtLoc(const double X[3], cdouble Current[3])
 
     kd_res_free(result);
   }
+
+  cdouble II(0.0, 1.0);
+  cdouble iw=II*Omega;
+  if (XDist<INT_MAX) {
+
+    RWGPanel *P = XP;
+    int ns = XnS;
+    RWGSurface *S = G->Surfaces[ns];
+    int np=P->Index;
+    cdouble K[3]={0.0,0.0,0.0}, Sigma=0.0;
+    cdouble N[3]={0.0,0.0,0.0}, Eta=0.0;
+    for(int nce=0; nce<3; nce++) // 'number of contributing edges'
+    {
+      int ne = P->EI[nce];
+      if (ne < 0) continue; // panel edge #nce is an exterior edge
+
+      // get the value of the RWG basis function associated with panel edge #nce
+      // at the panel centroid
+      RWGEdge *E    = S->Edges[ne];
+      double *Q     = S->Vertices + 3*(P->VI[nce]);
+      double Sign   = ( (np == E->iMPanel) ? -1.0 : 1.0);
+      double PreFac = Sign * E->Length / (2.0*P->Area);
+
+      double fRWG[3];
+      fRWG[0] = PreFac * (XPoint[0] - Q[0]);
+      fRWG[1] = PreFac * (XPoint[1] - Q[1]);
+      fRWG[2] = PreFac * (XPoint[2] - Q[2]);
+
+      // look up the coefficients of this RWG basis function in the
+      // expansions of the electric and magnetic surface currents
+      cdouble KAlpha, NAlpha;
+      G->GetKNCoefficients(KN, ns, ne, &KAlpha, &NAlpha);
+
+      // add the contributions of this RWG basis function to
+      // the source densities at XPoint
+      VecPlusEquals(K, KAlpha, fRWG);
+      Sigma += 2.0*KAlpha*PreFac / iw;
+      VecPlusEquals(N, NAlpha, fRWG);
+      Eta   += 2.0*NAlpha*PreFac / iw;
+    }; // for(int nce=0; nce<3; nce++)
+    Current[0] = K[0];
+    Current[1] = K[1];
+    Current[2] = K[2];
+  }
+
   if (!found) {
     Warn("No field found for point: (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
   }
@@ -388,3 +436,63 @@ char *MethodStr(RefineType method)
   }
   return str;
 }
+
+bool QueryObject::IsSamePoint(const double X[3], const double Y[3])
+{
+  return VecDistance(X,Y) < lengthEps;
+}
+
+bool QueryObject::IsSameValue(double x, double y)
+{
+  return fabs(x-y)<lengthEps;
+}
+
+bool QueryObject::IsSameAngle(double x, double y)
+{
+  return fabs(x-y)<angleEps;
+}
+
+/*
+ * X: coordinates of the point 
+ * insideTriangle: IT_ONVERTEX | IT_ONEDGE | IT_EXTERIOR | IT_INTERIOR
+ * distance: distance between X and the plane defined by triangle 
+ * point: projection of the point on the plane
+ */
+void QueryObject::PointTriangleDistance(const double *X,
+                           const double *V1, const double *V2, const double *V3, 
+                           double *distance, 
+                           int *insideTriangle, 
+                           double point[3])
+{
+  double E1[3], E2[3], E3[3];
+  double nHat[3];
+  double VecFromPoint[3];
+  if (IsSamePoint(X,V1)) {
+    *distance = 0;
+    *insideTriangle = IT_ONVERTEX;
+    VecCopy(V1, point);
+    return;
+  } else if (IsSamePoint(X,V2)) {
+    *distance = 0;
+    *insideTriangle = IT_ONVERTEX;
+    VecCopy(V2, point);
+    return;
+  } else if (IsSamePoint(X,V3)) {
+    *distance = 0;
+    *insideTriangle = IT_ONVERTEX;
+    VecCopy(V3, point);
+    return;
+  }
+  // Now X does not overlap with vertices
+  VecSub(V1, V2, E3);
+  VecSub(V2, V3, E1);
+  VecSub(V3, V1, E2);
+  VecSub(V1, X, VecFromPoint);
+  VecCross(E1,E2, nHat);
+  VecNormalize(nHat);
+  *distance = VecDot(VecFromPoint, nHat);
+  VecScaleAdd(X, *distance, nHat, point); 
+  *distance = fabs(*distance);
+  *insideTriangle = InsideTriangle(point, V1, V2, V3);
+}
+
