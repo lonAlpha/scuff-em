@@ -138,15 +138,21 @@ double Normalize(double min, double max, double val, int method=0)
   if (min==0) 
     min += 1e-9;
   assert(min<max);
-  switch (method) {
-    case 0: 
-      result = log(val/min) / log(max/min);
-      break;
-    case 1:
-      result = (val - min) / (max - min);
-      break;
-    default: 
-      ErrExit("Error in Normalize");
+  if (val < min) {
+    result = 0.0;
+  } else if (val > max) {
+    result = 1.0;
+  } else {
+    switch (method) {
+      case 0: 
+        result = log(val/min) / log(max/min);
+        break;
+      case 1:
+        result = (val - min) / (max - min);
+        break;
+      default: 
+        ErrExit("Error in Normalize");
+    }
   }
   return result;
 }
@@ -174,7 +180,15 @@ double GetMeshSize(const double x[3], MSData *msdata)
         Kz = real(current[2]);
         Kval = sqrt(Kx*Kx + Ky*Ky + Kz*Kz);
         b= (msdata->b)*Normalize(msdata->minVal, msdata->maxVal, Kval);
-        coef = pow(1.0+msdata->a+b, msdata->n);
+//        coef = pow(1.0+msdata->a+b, msdata->n);
+        coef = 1.0+msdata->n*b;
+        if (coef < 0) {
+          printf("Kval = %lf\n", Kval);
+          printf("range = [%lf, %lf]\n", msdata->minVal, msdata->maxVal);
+          printf("b = %lf\n", b);
+          printf("coef = %lf\n", coef);
+          ErrExit("Please check log");
+        }
         break;
       default: 
         fprintf(stderr, "Wrong RefineType\n");
@@ -371,45 +385,18 @@ void QueryObject::CurrentDensityAtLoc(const double X[3], cdouble Current[3])
     kd_res_free(result);
   }
 
-  cdouble II(0.0, 1.0);
-  cdouble iw=II*Omega;
+//  cdouble II(0.0, 1.0);
+//  cdouble iw=II*Omega;
   if (XDist<INT_MAX) {
 
     RWGPanel *P = XP;
     int ns = XnS;
     RWGSurface *S = G->Surfaces[ns];
     int np=P->Index;
-    cdouble K[3]={0.0,0.0,0.0}, Sigma=0.0;
-    cdouble N[3]={0.0,0.0,0.0}, Eta=0.0;
-    for(int nce=0; nce<3; nce++) // 'number of contributing edges'
-    {
-      int ne = P->EI[nce];
-      if (ne < 0) continue; // panel edge #nce is an exterior edge
-
-      // get the value of the RWG basis function associated with panel edge #nce
-      // at the panel centroid
-      RWGEdge *E    = S->Edges[ne];
-      double *Q     = S->Vertices + 3*(P->VI[nce]);
-      double Sign   = ( (np == E->iMPanel) ? -1.0 : 1.0);
-      double PreFac = Sign * E->Length / (2.0*P->Area);
-
-      double fRWG[3];
-      fRWG[0] = PreFac * (XPoint[0] - Q[0]);
-      fRWG[1] = PreFac * (XPoint[1] - Q[1]);
-      fRWG[2] = PreFac * (XPoint[2] - Q[2]);
-
-      // look up the coefficients of this RWG basis function in the
-      // expansions of the electric and magnetic surface currents
-      cdouble KAlpha, NAlpha;
-      G->GetKNCoefficients(KN, ns, ne, &KAlpha, &NAlpha);
-
-      // add the contributions of this RWG basis function to
-      // the source densities at XPoint
-      VecPlusEquals(K, KAlpha, fRWG);
-      Sigma += 2.0*KAlpha*PreFac / iw;
-      VecPlusEquals(N, NAlpha, fRWG);
-      Eta   += 2.0*NAlpha*PreFac / iw;
-    }; // for(int nce=0; nce<3; nce++)
+    cdouble K[6];
+    
+    G->EvalCurrentDistribution(XPoint, KN, 0, K);
+                               
     Current[0] = K[0];
     Current[1] = K[1];
     Current[2] = K[2];

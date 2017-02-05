@@ -38,7 +38,7 @@
 
 namespace scuff {
 
-#define MAXSTR 1000
+#define MAXSTR 10000
 #define MAXTOK 50  
 
 /*--------------------------------------------------------------*/
