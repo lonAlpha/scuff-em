@@ -1,0 +1,28 @@
+#!/bin/bash
+
+CODE=scuff-static
+
+for N in 2880 11520
+do
+
+  ##################################################
+  # first run to get capacitance matrix 
+  ##################################################
+  ARGS=""
+  ARGS="${ARGS} --geometry StriplineCapacitorAir_${N}.scuffgeo"
+  ARGS="${ARGS} --CapFile  StriplineCapacitorAir_${N}.CapMatrix"
+
+  ${CODE} ${ARGS} --TransFile TransFile
+
+  ##################################################
+  # second run to get field visualization data
+  ##################################################
+  ARGS=""
+  ARGS="${ARGS} --geometry StriplineCapacitorFull_${N}.scuffgeo"
+  ARGS="${ARGS} --PotentialFile MyPotentialFile"
+  ARGS="${ARGS} --FVMesh FVMesh.msh"
+  ARGS="${ARGS} --PlotFile StriplineCapacitorFull_${N}.SurfaceCharge.pp"
+
+#  ${CODE} ${ARGS}
+
+done

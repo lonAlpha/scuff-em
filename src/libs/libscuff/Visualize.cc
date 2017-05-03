@@ -99,23 +99,25 @@ void RWGGeometry::WritePPMesh(const char *FileName, const char *Tag, int PlotNor
   /***************************************************************/
   /* plot all panels on all objects  *****************************/
   /***************************************************************/
-  fprintf(f,"View \"%s\" {\n",Tag);
   for(ns=0, S=Surfaces[0]; ns<NumSurfaces; S=Surfaces[++ns])
-   for(np=0, P=S->Panels[0]; np<S->NumPanels; P=S->Panels[++np])
-    { 
-      PV[0]=S->Vertices + 3*P->VI[0];
-      PV[1]=S->Vertices + 3*P->VI[1];
-      PV[2]=S->Vertices + 3*P->VI[2];
-      Val=(double)(ns+1);
-      fprintf(f,"ST(%e,%e,%e,%e,%e,%e,%e,%e,%e) {%e,%e,%e};\n",
-                 PV[0][0], PV[0][1], PV[0][2],
-                 PV[1][0], PV[1][1], PV[1][2],
-                 PV[2][0], PV[2][1], PV[2][2],
-                 Val,Val,Val);
-    };
-  fprintf(f,"};\n");
-  fprintf(f,"View[PostProcessing.NbViews-1].ShowElement=1;\n");
-  fprintf(f,"View[PostProcessing.NbViews-1].ShowScale=0;\n");
+   { 
+    fprintf(f,"View \"%s(%s)\" {\n",S->Label,Tag);
+    for(np=0, P=S->Panels[0]; np<S->NumPanels; P=S->Panels[++np])
+     { 
+       PV[0]=S->Vertices + 3*P->VI[0];
+       PV[1]=S->Vertices + 3*P->VI[1];
+       PV[2]=S->Vertices + 3*P->VI[2];
+       Val=(double)(ns+1);
+       fprintf(f,"ST(%e,%e,%e,%e,%e,%e,%e,%e,%e) {%e,%e,%e};\n",
+                  PV[0][0], PV[0][1], PV[0][2],
+                  PV[1][0], PV[1][1], PV[1][2],
+                  PV[2][0], PV[2][1], PV[2][2],
+                  Val,Val,Val);
+     };
+    fprintf(f,"};\n");
+    fprintf(f,"View[PostProcessing.NbViews-1].ShowElement=1;\n");
+    fprintf(f,"View[PostProcessing.NbViews-1].ShowScale=0;\n");
+   };
 
   /***************************************************************/
   /* additionally plot panel normals if that was also requested **/
@@ -1012,4 +1014,139 @@ void RWGGeometry::PlotSurfaceCurrents(HVector *KN, cdouble Omega,
   PlotSurfaceCurrents(0, KN, Omega, 0, FileName);
 }
 
+/***************************************************************/
+/* this is a non-class method that is designed for more general*/
+/* purposes outside SCUFF-EM.                                  */
+/* MDFunc is a caller-supplied routine that inputs a list of   */
+/* NX coordinates (in the form of an NX x 3 HMatrix)           */
+/* and returns an NX x ND HMatrix whose columns are the values */
+/* of ND data quantities, plus optional names for those        */
+/* quantities.                                                 */
+/* if Integral is non-null, on return Integral[d] is an        */
+/* estimate of the integral of quantity #d over the mesh area. */
+/* If the value of a data quantity at any mesh vertex exceeds  */
+/* ABSURD in absolute value, that point is excluded and the    */
+/* average over the triangle is determined by the values at    */
+/* the remaining vertices.                                     */
+/* If UseCentroids==true, the function is evaluated at the     */
+/* panel centroids, not vertices.                              */
+/***************************************************************/
+#define ABSURD 1.0e100
+void MakeMeshPlot(MeshDataFunc MDFunc, void *MDFData,
+                  char *MeshFileName, const char *OptionsString,
+                  char *OutFileBase, HVector *Integral,
+                  bool UseCentroids)
+{
+  /***************************************************************/
+  /* try to open output file *************************************/
+  /***************************************************************/
+  if (OutFileBase==0) 
+   OutFileBase=GetFileBase(MeshFileName);
+  char OutFileName[100];
+  snprintf(OutFileName, 100, "%s.pp",OutFileBase);
+  FILE *f=fopen(OutFileName,"w");
+  if (!f)
+   { Warn("could not create output file %s",OutFileName);
+     return;
+   };
+
+  if (OptionsString)
+   fprintf(f,"%s",OptionsString);
+     
+  /***************************************************************/
+  /* read in mesh and put vertex coordinates into XMatrix        */
+  /***************************************************************/
+  RWGSurface *S=new RWGSurface(MeshFileName);
+  HMatrix *XMatrix=0;
+
+  if (UseCentroids)
+   { XMatrix =new HMatrix(S->NumPanels, 3);
+     for(int np=0; np<S->NumPanels; np++)
+      XMatrix->SetEntriesD(np, ":", S->Panels[np]->Centroid);
+   }
+  else
+   { XMatrix=new HMatrix(S->NumVertices, 3);
+     for(int nv=0; nv<S->NumVertices; nv++)
+      XMatrix->SetEntriesD(nv, ":", S->Vertices + 3*nv);
+   };
+
+  /***************************************************************/
+  /* call user's function to populate data matrix ****************/
+  /***************************************************************/
+  const char **DataNames=0;
+  HMatrix *DataMatrix=MDFunc(MDFData, XMatrix, &DataNames);
+  int NumData = DataMatrix->NC;
+
+  if (Integral && (Integral->N!=NumData || Integral->RealComplex!=LHM_REAL) )
+   { Warn("%s:%i: incorrect Integral vector (%i,%i!=%i,0)",__FILE__,__LINE__,Integral->N,NumData,Integral->RealComplex);
+     Integral=0;
+   };
+  if (Integral)
+   Integral->Zero();
+  
+  /***************************************************************/
+  /* write a separate "View" section to the .pp file for each    */
+  /* data field                                                  */
+  /***************************************************************/
+  for(int nd=0; nd<NumData; nd++)
+   {
+     if (DataNames && DataNames[nd])
+      fprintf(f,"View \"%s\"{",DataNames[nd]);
+     else
+      fprintf(f,"View \"%i\"{",nd);
+     for(int np=0; np<S->NumPanels; np++)
+      { 
+        double *V[3];        // vertices
+        double Q[3];         // quantities
+        double QAvg=0.0;     // average quantity, excluding absurd vertices
+        int nAvg=0;          // # vertices that contributed to average
+        for(int iv=0; iv<3; iv++)
+         { 
+           int nv = S->Panels[np]->VI[iv];
+           V[iv]  = S->Vertices + 3*nv;
+
+           if (UseCentroids) continue;
+
+           Q[iv]  = DataMatrix->GetEntryD(nv, nd);
+	   if ( fabs(Q[iv]) < ABSURD )
+	    { QAvg += Q[iv];
+	      nAvg += 1;
+	    };
+         };
+
+        if (UseCentroids)
+         {
+           Q[0]=Q[1]=Q[2]=QAvg=DataMatrix->GetEntryD(np,nd);
+         }
+        else
+         { if (nAvg>=2)
+            QAvg/=nAvg;
+           for(int iv=0; iv<3; iv++)
+            if ( fabs(Q[iv]) >= ABSURD )
+             Q[iv]=QAvg;
+         }
+
+        fprintf(f,"ST(%e,%e,%e,%e,%e,%e,%e,%e,%e) {%e,%e,%e};\n",
+                   V[0][0], V[0][1], V[0][2],
+                   V[1][0], V[1][1], V[1][2],
+                   V[2][0], V[2][1], V[2][2],
+                   Q[0], Q[1], Q[2]);
+
+        if (Integral)
+         Integral->AddEntry(nd,QAvg * S->Panels[np]->Area);
+
+      }; // for(int np=0; np<S->NumPanels; np++)
+
+     fprintf(f,"};\n\n");
+
+   };  // for(int nd=0; nd<DataMatrix->NC; nd++)
+  fclose(f);
+  delete XMatrix;
+  delete DataMatrix;
+  delete S;
+}
+
 } // namespace scuff
+
+
+

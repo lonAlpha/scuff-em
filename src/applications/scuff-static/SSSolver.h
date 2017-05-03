@@ -37,6 +37,8 @@
 #include <libhmat.h>
 #include <libscuff.h>
 
+#include "StaticSubstrate.h"
+
 #ifdef HAVE_CONFIG_H
 	#include <config.h>
 #endif
@@ -66,7 +68,9 @@ class SSSolver
   public:  
 
    /* constructor / destructor */
-   SSSolver(const char *GeoFileName, int pLogLevel = SCUFF_NOLOGGING);
+   SSSolver(const char *GeoFileName,
+            const char *SubstrateFile=0,
+            int pLogLevel = SCUFF_NOLOGGING);
    ~SSSolver();
 
    /* routines for allocating, and then filling in, the electrostatic BEM matrix */
@@ -98,6 +102,7 @@ class SSSolver
    /*- class methods intended for internal use only, i.e. which          */ 
    /*- would be private if we cared about the public/private distinction */
    /*--------------------------------------------------------------------*/ 
+
    double GetPPI(RWGSurface *Sa, int npa, RWGSurface *Sb, int npb, int WhichIntegral);
    void GetPhiE(int ns, int np, double *X, double PhiE[4]);
 
@@ -107,9 +112,23 @@ class SSSolver
    /*--------------------------------------------------------------------*/ 
    RWGGeometry *G;
 
+   SubstrateData *Substrate;
+
    char *TransformLabel;
+   char *FileBase;
+
+   /*--------------------------------------------------------------*/
+   /*- helper functions for contributions of layered dielectric    */
+   /*- substrates                                                  */
+   /*--------------------------------------------------------------*/
+   void AddSubstrateContributionsToBEMMatrixBlock(int nsa, int nsb,
+                                                  HMatrix *M,
+                                                  int RowOffset,
+                                                  int ColOffset);
+   void AddSubstratePhiE(int ns, int np, double *X, double PhiE[4]);
 
  };
 
 }
+
 #endif // #ifndef SSGEOMETRY_H

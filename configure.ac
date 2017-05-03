@@ -280,6 +280,7 @@ AC_CONFIG_FILES([
  examples/DiffractionPatterns/Makefile
  examples/CorrugatedDisc/Makefile
  examples/CubeTorus/Makefile
+ examples/ImplicitSubstrate/Makefile
  examples/HalfSpaceLDOS/Makefile
  examples/HalfSpaceLDOS/mshFiles/Makefile
  examples/HalfSpaceLDOS/scuffgeoFiles/Makefile
@@ -291,6 +292,7 @@ AC_CONFIG_FILES([
  examples/SphericalShell/Makefile
  examples/SiliconBeams/Makefile
  examples/SiO2Spheres/Makefile
+ examples/StriplineCapacitor/Makefile
  examples/TwoBodyCapacitors/Makefile
  examples/TwoDimensionalCylinders/Makefile
  examples/ThinFilm/Makefile

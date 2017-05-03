@@ -577,7 +577,6 @@ class RWGGeometry
    
    static bool UseHRWGFunctions;
    static bool UseHighKTaylorDuffy;
-   static bool UseGetFieldsV2P0;
    static bool UseTaylorDuffyV2P0;
    static bool DisableCache;
  };
@@ -613,6 +612,23 @@ void GetFIBBIData(void *pCache,
 void PreloadCache(const char *FileName);
 void StoreCache(const char *FileName);
 void CheckLattice(HMatrix *LBasis);
+
+/***************************************************************/
+/* this is a non-class method that is designed for more general*/
+/* purposes outside SCUFF-EM.                                  */
+/* MDFunc is a caller-supplied routine that inputs a list of   */
+/* NX coordinates (in the form of an NX x 3 HMatrix)           */
+/* and returns an NX x ND HMatrix whose columns are the values */
+/* of ND data quantities, plus optional names for those        */
+/* quantities.                                                 */
+/***************************************************************/
+typedef HMatrix * (*MeshDataFunc)(void *UserData, HMatrix *XMatrix,
+                                  const char ***DataNames);
+void MakeMeshPlot(MeshDataFunc MDFunc, void *MDFData,
+                  char *MeshFileName, const char *OptionsString=0,
+                  char *OutFileName=0, HVector *Integral=0,
+                  bool UseCentroids=false);
+                  
 
 } // namespace scuff
 

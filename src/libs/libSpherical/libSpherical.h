@@ -110,6 +110,12 @@ void GetRadialFunctions(int lMax, cdouble k, double r, int WaveType,
 void GetRadialFunction(int l, cdouble k, double r, int WaveType,
                        cdouble *R, cdouble *dRdr=0, cdouble *RlSlash=0);
 
+void GetVSWRadialFunctions(int LMax, cdouble k, double r,
+                           int WaveType, cdouble *RFArray,
+                           double *Workspace=0,
+                           bool TimesrFactor=false,
+                           bool Conjugate=false);
+
 /***************************************************************/
 /* scalar helmholtz solutions **********************************/
 /***************************************************************/
@@ -133,6 +139,9 @@ void GetMNlmArray(int lMax, cdouble k,
                   double r, double Theta, double Phi,
                   int WaveType, cdouble *M, cdouble *N, 
                   double *Workspace=0, cdouble *LL=0, cdouble *DivLL=0);
+
+double GetdzVSWCoefficient(int L,  int M,  int T,
+                           int LP, int MP, int TP);
 
 /***************************************************************/
 /***************************************************************/

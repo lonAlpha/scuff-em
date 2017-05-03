@@ -1,19 +1,4 @@
 /* Copyright (C) 2005-2011 M. T. Homer Reid
-
-  double CT=cos(Theta), ST=sin(Theta);
-  double CP=cos(Phi), SP=sin(Phi);
-  double M[3][3];
-  int mu, nu;
-
-  M[0][0]=ST*CP;    M[0][1]=CT*CP;    M[0][2]=-SP;
-  M[1][0]=ST*SP;    M[1][1]=CT*SP;    M[1][2]=CP;
-  M[2][0]=CT;       M[2][1]=-ST;      M[2][2]=0.0;
-
-  memset(VC,0,3*sizeof(double));
-  for(mu=0; mu<3; mu++)
-   for(nu=0; nu<3; nu++)
-    VC[mu] += M[mu][nu]*VS[nu];
-}
  *
  * This file is part of SCUFF-EM.
  *
@@ -271,7 +256,6 @@ void GetPlm(int lMax, int m, double x, double *Plm, double *PlmPrime)
      PlmPrime[np] = (Alm*Plm[np-1] - l*x*Plm[np])/omx2;
      OldFactor=Factor;
    };
-
 }
 
 /*--------------------------------------------------------------*/
@@ -421,14 +405,9 @@ void GetYlmDerivArray(int lMax, double Theta, double Phi,
   CT=cos(Theta);
 
 #ifdef HAVE_LIBGSL
-  static int lMaxSave=-1;
-  static double *gslP=0, *gslPPrime=0;
-  if (lMaxSave<lMax)
-   { lMaxSave=lMax;
-     int gslSize=gsl_sf_legendre_array_n(lMax);
-     gslP=(double *)realloc(gslP, gslSize*sizeof(double));
-     gslPPrime=(double *)realloc(gslPPrime, gslSize*sizeof(double));
-   };
+  size_t gslSize=gsl_sf_legendre_array_n(lMax);
+  double *gslP=new double[gslSize];
+  double *gslPPrime=new double[gslSize];
   gsl_sf_legendre_deriv_array(GSL_SF_LEGENDRE_SPHARM, lMax, CT, gslP, gslPPrime);
   for(int l=0; l<=lMax; l++)
    for(int m=0; m<=l; m++)
@@ -437,6 +416,8 @@ void GetYlmDerivArray(int lMax, double Theta, double Phi,
       Plm[m][l] = Sign * gslP[gslIndex];
       PlmPrime[m][l] = Sign * gslPPrime[gslIndex];
     };
+  delete[] gslP;
+  delete[] gslPPrime;
 #else
   for(int m=0; m<=lMax; m++)
    GetPlm(lMax, m, CT, Plm[m] + m, PlmPrime[m] + m);
@@ -488,6 +469,10 @@ void GetYlmDerivArray(int lMax, double Theta, double Phi,
 /* Workspace may be NULL, in which case work space will be allocated  */
 /* dynamically; if it is non-NULL it must point to a buffer of length */
 /* at least 4*(lMax+2) doubles.                                       */
+/*                                                                    */
+/* 20170215 this is now a legacy routine, replaced by                 */
+/* GetVSWRadialFunctions(), and will eventually be removed            */
+/* from libSpherical.                                                 */
 /**********************************************************************/
 void GetRadialFunctions(int lMax, cdouble k, double r, int WaveType,
                         cdouble *R, cdouble *dRdr, double *Workspace)
@@ -500,8 +485,8 @@ void GetRadialFunctions(int lMax, cdouble k, double r, int WaveType,
   /*- 20111112 separate handling for the r==0 case ---------------*/
   /*--------------------------------------------------------------*/
   if (r==0.0)
-   { memset(R, 0, lMax*sizeof(cdouble));
-     if (dRdr) memset(dRdr, 0, lMax*sizeof(cdouble));
+   { memset(R, 0, (lMax+1)*sizeof(cdouble));
+     if (dRdr) memset(dRdr, 0, (lMax+1)*sizeof(cdouble));
      if (WaveType == LS_REGULAR ) 
       { R[0]=1.0/3.0; dRdr[1]=k/3.0; };
      return;
@@ -575,6 +560,73 @@ void GetRadialFunction(int l, cdouble k, double r, int WaveType,
   delete[] R;
   delete[] dRdr;
 
+}
+
+/***************************************************************/
+/* Compute the radial-function factors in the vector spherical */
+/* wavefunctions.                                              */
+/* RFArray[3*L + P] = radial-function factor that multiplies   */
+/*                    angular function of polarization P for   */
+/*                    spherical-wave index L                   */
+/*                    where P={0,1,2} for angular functions    */
+/*                            {X,Z,Y}                          */
+/* RFArray[3*L + 0] = R(kr)                                    */
+/* RFArray[3*L + 1] = R(kr)/kr + |dR(z)/dz|_{z=kr}             */
+/* RFArray[3*L + 2] = -Sqrt[L*(L+1)]*R(kr)/kr                  */
+/*                                                             */
+/* where R(kr) = j_\ell(kr)     for WaveType=LS_REGULAR        */
+/*               h^(1)_\ell(kr) for WaveType=LS_OUTGOING       */
+/*               h^(2)_\ell(kr) for WaveType=LS_INCOMING       */
+/*                                                             */
+/* if TimesrFactor=true, all functions are multiplied by a     */
+/* factor of r (if r=0 the limiting value as r->0 is returned).*/
+/*                                                             */
+/* if Conjugate=true, the radial factor in all functions is    */
+/* complex-conjugated.                                         */
+/***************************************************************/
+void GetVSWRadialFunctions(int LMax, cdouble k, double r,
+                           int WaveType, cdouble *RFArray,
+                           double *Workspace, bool TimesrFactor,
+                           bool Conjugate)
+{
+  if (r==0.0)
+   { memset(RFArray, 0, 3*(LMax+1));
+     if (TimesrFactor) return;
+     RFArray[3*1+1] = 2.0/3.0;
+     RFArray[3*1+2] = -M_SQRT2/3.0; //-1.41421356237309504880/3.0;
+     return;
+   };
+
+  cdouble z=k*r;
+
+
+  char Func =   (WaveType==LS_INCOMING) ? 't'
+              : (WaveType==LS_OUTGOING) ? 'o'
+              :                           'j'; // LS_REGULAR;
+
+  AmosBessel(Func,z,0.0,LMax+2,false,RFArray,Workspace);
+
+  for(int L=LMax; L>=0; L--)
+   { 
+     double RtLLP1 = sqrt(L*(L+1.0));
+
+     cdouble R      = RFArray[L];
+     cdouble Rlp1   = RFArray[L+1];
+     cdouble Roz    = R/z;
+     cdouble dRdz   = ((double )L)*Roz - Rlp1;
+     RFArray[3*L+0] = R;
+     RFArray[3*L+1] = Roz + dRdz;
+     RFArray[3*L+2] = -RtLLP1*Roz;
+   };
+ 
+  if (TimesrFactor)
+   VecScale(RFArray, r, 3*(LMax+1) );
+
+  if (Conjugate)
+   for(int n=0; n<3*(LMax+1); n++)
+    RFArray[n]=conj(RFArray[n]);
+
+  
 }
 
 /***************************************************************/
@@ -949,6 +1001,38 @@ void GetMNlm(int l, int m, cdouble k, double r, double Theta, double Phi,
   delete[] MArray;
   delete[] NArray;
 
+}
+
+/***************************************************************/
+/* d/dz F_{LMT} = k*\sum C_{LMT, L'M'T'} F_{L'M'T'}            */
+/* where T=0,1 for M,N waves                                   */
+/***************************************************************/
+static double almCoefficient(int L, int M)
+ { return ((double)M)/(L*(L+1.0)); }
+
+static double blmCoefficient(int L, int M)
+{ 
+  double Num   = L*(L+2.0)*(L-M+1.0)*(L+M+1.0);
+  double Denom = (2.0*L+1.0)*(2.0*L+3.0);
+  return sqrt(Num/Denom) / (L+1.0);
+}
+
+double GetdzVSWCoefficient(int L,  int M,  int T,
+                           int LP, int MP, int TP)
+{
+  if (M!=MP)
+   return 0.0;
+
+  if (L==LP && T!=TP)
+   return ( T==0 ? 1.0 : -1.0) * almCoefficient(L,M);
+
+  int DL = L-LP;
+  if ( T!=TP || abs(DL)!=1 )
+   return 0.0;
+
+  if (L>LP)
+   return blmCoefficient(LP,M);
+  return -1.0*blmCoefficient(L,M);
 }
  
 /***************************************************************/

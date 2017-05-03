@@ -4,6 +4,7 @@ SUBDIRS =            	\
  CubeTorus           	\
  GetTMatrix             \
  HalfSpaceLDOS          \
+ ImplicitSubstrate      \
  PlateWithHole          \
  PerforatedThinFilm     \
  PlatonicSolids         \
@@ -11,6 +12,7 @@ SUBDIRS =            	\
  SiliconBeams           \
  SolidSphere            \
  SphericalShell         \
+ StriplineCapacitor     \
  ThinFilm               \
  TwoBodyCapacitors      \
  WireAntenna         
