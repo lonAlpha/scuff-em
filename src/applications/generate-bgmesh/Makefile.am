@@ -1,9 +1,9 @@
 bin_PROGRAMS = generate-bgmesh
 
-scuff_scatter_adapt_SOURCES = 	\
- generate_bgmesh.cc
+generate_bgmesh_SOURCES = 	\
+ generate-bgmesh.cc
 
-scuff_scatter_adapt_LDADD = $(top_builddir)/src/libs/libscuff/libscuff.la
+generate_bgmesh_LDADD = $(top_builddir)/src/libs/libscuff/libscuff.la
 
 AM_CPPFLAGS = -DSCUFF \
               -I$(top_srcdir)/src/libs/libscuff      \
