@@ -1,0 +1,531 @@
+# scuff-scatter run on jinyao-debian (01/07/17::22:47:52)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:04:50)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:11:24)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:28:00)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:29:51)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:34:09)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+# scuff-scatter run on jinyao-debian (01/07/17::23:40:17)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -8.544303e-08 1.667330e-01 3.773747e-05 8.836243e-05 6.929788e-01 3.135736e+00 -3.128884e+00 -1.017413e-02 
+# scuff-scatter run on jinyao-debian (01/07/17::23:44:03)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube 5.373506e-07 1.645638e-01 1.056913e-04 1.097498e-04 6.843716e-01 3.129551e+00 -3.078485e+00 4.432255e-03 
+0.109956 Cube -1.317328e-07 1.694551e-01 -1.884607e-05 -2.899827e-05 7.041963e-01 3.163329e+00 -3.179745e+00 -5.538929e-04 
+0.109956 Cube -9.109886e-09 1.712467e-01 -5.313105e-07 -2.433188e-06 7.114585e-01 3.205662e+00 -3.205781e+00 9.637764e-04 
+# scuff-scatter run on jinyao-debian (01/08/17::00:01:33)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube 1.002445e-06 1.652160e-01 -1.023122e-06 4.576247e-05 6.863965e-01 3.126807e+00 -3.115634e+00 -2.760912e-02 
+0.109956 Cube -1.020915e-07 1.678934e-01 6.585849e-05 9.281661e-05 6.976286e-01 3.150411e+00 -3.140044e+00 1.523402e-02 
+0.109956 Cube -1.543074e-08 1.698255e-01 2.367403e-05 -2.804228e-06 7.057931e-01 3.183829e+00 -3.178682e+00 -7.359274e-04 
+0.109956 Cube -1.060609e-08 1.709732e-01 7.684437e-06 2.356399e-05 7.103730e-01 3.201693e+00 -3.202779e+00 -1.000287e-04 
+# scuff-scatter run on jinyao-debian (01/08/17::00:32:36)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube 1.008880e-06 1.652160e-01 -1.023121e-06 4.576247e-05 6.863965e-01 3.126807e+00 -3.115634e+00 -2.760912e-02 
+0.109956 Cube -1.054651e-07 1.681230e-01 2.466254e-05 -1.210472e-05 6.985965e-01 3.153204e+00 -3.154290e+00 -1.509336e-02 
+# scuff-scatter run on jinyao-debian (01/08/17::00:35:33)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -1.145821e-07 1.661717e-01 -3.056647e-05 6.362151e-05 6.908675e-01 3.117966e+00 -3.114160e+00 1.674574e-02 
+0.109956 Cube -1.094862e-08 1.704206e-01 -1.591640e-05 -3.246528e-05 7.081142e-01 3.187191e+00 -3.193473e+00 -8.270797e-03 
+0.109956 Cube -1.325584e-07 1.714629e-01 -5.852099e-06 4.714612e-05 7.123921e-01 3.215697e+00 -3.211819e+00 -2.884161e-03 
+# scuff-scatter run on jinyao-debian (02/14/17::23:21:38)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -1.145821e-07 1.661717e-01 -3.056647e-05 6.362151e-05 6.908675e-01 3.117966e+00 -3.114160e+00 1.674574e-02 
+0.109956 Cube 2.208820e-07 1.684350e-01 -2.717122e-05 -1.693545e-05 7.004709e-01 3.161677e+00 -3.162695e+00 -9.841178e-03 
+# scuff-scatter run on jinyao-debian (02/14/17::23:38:02)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -1.145821e-07 1.661717e-01 -3.056647e-05 6.362151e-05 6.908675e-01 3.117966e+00 -3.114160e+00 1.674574e-02 
+0.109956 Cube 2.208820e-07 1.684350e-01 -2.717122e-05 -1.693545e-05 7.004709e-01 3.161677e+00 -3.162695e+00 -9.841178e-03 
+0.109956 Cube -2.183058e-07 1.698501e-01 -6.913557e-06 3.437248e-05 7.056494e-01 3.195690e+00 -3.183983e+00 -1.747443e-03 
+# scuff-scatter run on jinyao-debian (02/15/17::07:45:12)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -1.145821e-07 1.661717e-01 -3.056647e-05 6.362151e-05 6.908675e-01 3.117966e+00 -3.114160e+00 1.674574e-02 
+# scuff-scatter run on jinyao-debian (02/15/17::23:23:09)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/15/17::23:37:29)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/15/17::23:44:01)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/15/17::23:49:58)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/18/17::21:52:53)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/19/17::23:31:05)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/22/17::21:04:06)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/22/17::21:55:58)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/22/17::22:03:01)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/22/17::22:09:10)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::20:19:10)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+0.109956 Cube -2.110605e-07 1.659028e-01 -4.342725e-05 9.134432e-05 6.899337e-01 3.122765e+00 -3.110910e+00 2.284340e-02 
+# scuff-scatter run on jinyao-debian (02/23/17::20:37:10)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::21:51:13)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::22:02:06)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::22:17:50)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::22:27:27)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/23/17::23:18:12)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/24/17::21:22:43)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.454306e-06 1.629106e-01 1.190657e-04 -9.841966e-05 6.725564e-01 3.071605e+00 -3.046858e+00 -6.187852e-03 
+0.109956 Cube -1.145821e-07 1.661717e-01 -3.056647e-05 6.362151e-05 6.908675e-01 3.117966e+00 -3.114160e+00 1.674574e-02 
+0.109956 Cube 2.208820e-07 1.684350e-01 -2.717122e-05 -1.693545e-05 7.004709e-01 3.161677e+00 -3.162695e+00 -9.841178e-03 
+0.109956 Cube -2.183058e-07 1.698501e-01 -6.913557e-06 3.437248e-05 7.056494e-01 3.195690e+00 -3.183983e+00 -1.747443e-03 
+# scuff-scatter run on jinyao-debian (02/25/17::18:01:47)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/25/17::23:24:24)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/26/17::10:08:08)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+0.109956 Cube -2.110605e-07 1.659028e-01 -4.342725e-05 9.134432e-05 6.899337e-01 3.122765e+00 -3.110910e+00 2.284340e-02 
+# scuff-scatter run on jinyao-debian (02/26/17::20:56:57)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/26/17::21:11:22)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (02/26/17::21:40:11)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.109956 Cube -3.449727e-06 1.629107e-01 1.190528e-04 -9.842108e-05 6.725566e-01 3.071606e+00 -3.046861e+00 -6.187646e-03 
+# scuff-scatter run on jinyao-debian (05/04/17::21:52:41)
+# data file columns: 
+# 1   omega           (rad/sec) 
+# 2   surface label 
+# 3   absorbed power  (watts)
+# 4   scattered power (watts)
+# 5   x-force         (nanonewtons)
+# 6   y-force         (nanonewtons)
+# 7   z-force         (nanonewtons)
+# 8   x-torque        (nanonewtons * microns)
+# 9   y-torque        (nanonewtons * microns)
+#10   z-torque        (nanonewtons * microns)
+0.125664 Cube -9.366808e-06 9.669622e+00 2.629269e-03 2.473727e-03 2.435118e+01 7.350655e+02 -7.355834e+02 5.997669e-01 

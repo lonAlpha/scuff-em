@@ -1,0 +1,5 @@
+Cube 
+size: 50 m
+Freq: 6e6 Hz
+Lambda: 50 m
+Initial mesh: lambda/8

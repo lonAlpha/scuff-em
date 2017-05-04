@@ -1,0 +1,11 @@
+geometry debug_cube.scuffgeo
+pwDirection 0 0 1
+pwPolarization 0 1 0
+frequency 0.00525
+iteration 8
+method 1
+PFTFile sphere.pft
+PlotSurfaceCurrents
+a 0.2
+b 2
+DebugLevel 2
