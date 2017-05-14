@@ -16,3 +16,9 @@ autoreconf --verbose --install --symlink --force
 autoreconf --verbose --install --symlink --force
 
 ./configure --enable-maintainer-mode "$@"
+
+#debug: 
+#sh autogen.sh --prefix=/home/jinyao/mylocal --enable-debug --without-openmp --with-pthreads --disable-shared --with-hdf5-includedir=/usr/include/hdf5/serial --with-hdf5-libdir=/usr/lib/x86_64-linux-gnu/hdf5/serial --program-suffix=_g
+#regular
+#sh autogen.sh  --prefix=/home/jinyao/mylocal --with-hdf5-includedir=/usr/include/hdf5/serial --with-hdf5-libdir=/usr/lib/x86_64-linux-gnu/hdf5/serial 
+
