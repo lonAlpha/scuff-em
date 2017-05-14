@@ -9,7 +9,7 @@ Meter = 1.0;
 L = 10*Meter;    // radius
 freq = 6e6;
 lambda = 3e8/freq*Meter;
-mylc = lambda/8;
+mylc = lambda/20;
 L = 1*lambda;
 
 //************************************************************

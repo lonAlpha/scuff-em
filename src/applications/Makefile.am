@@ -8,6 +8,7 @@ SUBDIRS = \
  scuff-rf 		\
  scuff-scatter  	\
  scuff-scatter-adapt    \
+ generate-bgmesh        \
  scuff-static   	\
  scuff-tmatrix  	\
- scuff-transmission
+ scuff-transmission     

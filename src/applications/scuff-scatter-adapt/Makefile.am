@@ -3,7 +3,7 @@ bin_PROGRAMS = scuff-scatter-adapt
 scuff_scatter_adapt_SOURCES = 	\
  scuff-scatter-adapt.cc 	\
  OutputModules.cc 		\
- scuff-scatter-adapt.h
+ scuff-scatter-adapt.h          
 
 scuff_scatter_adapt_LDADD = $(top_builddir)/src/libs/libscuff/libscuff.la
 

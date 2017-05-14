@@ -2,5 +2,6 @@ geometry cube_geo.scuffgeo
 pwDirection 0 0 1
 pwPolarization 0 1 0
 Omega 0.12566370614359174
+HDF5File Cube0.hdf5
 PFTFile cube.pft
 PlotSurfaceCurrents
