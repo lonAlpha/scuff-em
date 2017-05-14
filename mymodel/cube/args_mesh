@@ -1,0 +1,8 @@
+geometry cube_geo.scuffgeo
+Omega 0.12566370614359174
+HDF5File Cube0.hdf5 
+HDF5Suffix 0.125664
+RefineIndicator 0
+MinMeshSize 2.5
+MaxMeshSize 8
+MappingFunction 1
